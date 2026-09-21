@@ -1,0 +1,28 @@
+kind = "web"
+previewPath = "/"
+title = "AMBURAX Sales History"
+description = "A responsive AMBURAX sales operations console for reviewing transactions, inspecting bills, filtering records, and scanning compact retail analytics."
+version = "1.0.0"
+id = "artifacts/amburax-sales"
+router = "path"
+
+[[services]]
+name = "web"
+paths = [ "/" ]
+localPort = 22773
+
+[services.development]
+run = "pnpm --filter @workspace/amburax-sales run dev"
+
+[services.production]
+build = [ "pnpm", "--filter", "@workspace/amburax-sales", "run", "build" ]
+serve = "static"
+publicDir = "artifacts/amburax-sales/dist/public"
+
+[[services.production.rewrites]]
+from = "/*"
+to = "/index.html"
+
+[services.env]
+PORT = "22773"
+BASE_PATH = "/"

@@ -1,0 +1,913 @@
+# AMBURAX — SALES & TRANSACTION HISTORY VISUAL REBUILD
+
+Screen:
+Sales & Transaction History
+
+Route:
+/sales
+
+IMPORTANT:
+
+I am providing TWO screenshots.
+
+SCREENSHOT 1:
+The LIGHT "ATELIER RETAIL" Sales & Transaction History reference.
+
+SCREENSHOT 2:
+The CURRENT AMBURAX Sales screen.
+
+Your task is to rebuild the CURRENT AMBURAX Sales screen so its visual structure, density, spacing, hierarchy, proportions, and usability closely match SCREENSHOT 1.
+
+This is a VISUAL/INTERACTION PROTOTYPE task.
+
+Do NOT connect to or replace the AMBURAX production backend.
+
+Do NOT redesign Dashboard or Inventory.
+
+========================================================
+1. FINAL VISUAL DIRECTION
+========================================================
+
+The final screen should feel like a:
+
+premium enterprise sales operations console
+
+Characteristics:
+
+- light enterprise shell
+- dense information
+- professional data table
+- compact KPI cards
+- powerful filter toolbar
+- transaction detail inspector
+- transaction tabs
+- sales analytics
+- payment analytics
+- transaction type breakdown
+- responsive enterprise behavior
+
+Use the same visual language already established by the AMBURAX Dashboard and Inventory screens.
+
+========================================================
+2. AMBURAX BRAND
+========================================================
+
+Keep:
+
+AMBURAX
+
+Do NOT rename to Atelier Retail.
+
+The reference screenshot is the visual authority only.
+
+Use AMBURAX terminology where appropriate.
+
+========================================================
+3. APPLICATION SHELL
+========================================================
+
+Use the approved light AMBURAX shell:
+
+LEFT:
+~238px sidebar
+
+TOP:
+~68px header
+
+MAIN:
+remaining content
+
+Reuse the same visual language:
+
+- white sidebar
+- white header
+- very light background
+- subtle borders
+- compact controls
+- AMBURAX blue
+- slate typography
+- restrained shadows
+- compact radius
+
+Do not use the old dark shell.
+
+========================================================
+4. TOP HEADER
+========================================================
+
+Match the approved AMBURAX header.
+
+Structure:
+
+Store selector
+Global search
+Store Online
+Shift/Till
+New Sale
+Notifications
+User
+
+Keep the exact style and proportions used in the approved Dashboard.
+
+========================================================
+5. PAGE HEADER
+========================================================
+
+Main content:
+
+Sales & Transaction History
+
+Supporting text:
+
+View, search and manage all your sales, returns and transactions
+
+Right-side primary action:
+
+Export
+
+Use a compact enterprise button.
+
+If a true Export implementation is not connected in this prototype:
+
+the button may be present visually but must be clearly isolated behind the UI adapter.
+
+Do not build a fake production export backend.
+
+========================================================
+6. KPI ROW
+========================================================
+
+Build four compact KPI cards.
+
+Reference structure:
+
+1. Total Sales
+2. Total Bills
+3. Returns / Exchanges
+4. Avg. Bill Value
+
+Each card:
+
+- small icon
+- label
+- large value
+- trend
+- supporting comparison
+
+Visual example only:
+
+₹3,42,850
+284
+12
+₹1,207
+
+DO NOT hardcode these into production.
+
+Prototype values must live in an isolated mock/fixture adapter so they can later be replaced by real AMBURAX API data.
+
+========================================================
+7. FILTER TOOLBAR
+========================================================
+
+Directly below KPIs create a dense filter toolbar.
+
+Reference:
+
+Date Range
+All Stores
+All Payment Modes
+All Transaction Types
+Search
+More Filters
+Reset
+
+Search should support the visual concepts:
+
+- bill number
+- customer name
+- product
+- barcode
+
+Use compact controls.
+
+========================================================
+8. DATE RANGE
+========================================================
+
+Use a compact date-range control.
+
+Example visual:
+
+01 Aug 2024 – 31 Aug 2024
+
+This is prototype content only.
+
+Do not hardcode this into production logic.
+
+Make the component replaceable with a real date-range API/state later.
+
+========================================================
+9. TRANSACTION TABS
+========================================================
+
+Reference has:
+
+All Transactions
+Sales
+Returns
+Exchanges
+Drafts
+Voided
+
+Use the visual pattern:
+
+selected:
+blue text
+blue bottom border
+
+unselected:
+muted slate text
+
+Show counts.
+
+The prototype may use mock counts.
+
+Keep the data adapter isolated.
+
+========================================================
+10. MAIN WORKSPACE
+========================================================
+
+Use a desktop two-pane layout.
+
+LEFT:
+Transaction table
+
+RIGHT:
+Transaction Details inspector
+
+Target inspector:
+
+~360–390px
+
+The main table must remain dense and readable.
+
+========================================================
+11. TRANSACTION TABLE
+========================================================
+
+Reference columns:
+
+Selection
+#
+Date & Time
+Bill No.
+Customer
+Items
+Amount
+Payment Mode
+Status
+Action
+
+Use a compact enterprise table.
+
+Rows should contain:
+
+- checkbox
+- row number
+- date/time
+- bill reference
+- customer
+- item count
+- amount
+- payment method
+- status
+- View action
+
+Use tabular numeric alignment.
+
+========================================================
+12. TABLE DENSITY
+========================================================
+
+The table must be dense.
+
+Use approximately:
+
+36–42px row height
+
+Compact header.
+
+Do NOT create oversized rows.
+
+Do NOT create a giant empty data table.
+
+========================================================
+13. TRANSACTION STATUS
+========================================================
+
+Use compact semantic pills.
+
+Possible visual examples:
+
+Paid
+Refunded
+Exchanged
+Pending
+Voided
+
+These are visual concepts only.
+
+Real AMBURAX production status mapping will be implemented later.
+
+========================================================
+14. BILL NUMBER
+========================================================
+
+Bill/reference numbers should visually resemble links.
+
+Example:
+
+POS-002134
+
+Use:
+
+- blue
+- compact
+- clickable-looking
+
+Do not create fake navigation in the prototype unless the component actually supports it.
+
+========================================================
+15. TRANSACTION DETAILS INSPECTOR
+========================================================
+
+This is a major part of the reference.
+
+When a transaction is selected:
+
+open the right-side Transaction Details panel.
+
+Header:
+
+Transaction Details
+close button
+
+Then:
+
+Bill number
+status
+date/time
+cashier
+
+========================================================
+16. CUSTOMER BLOCK
+========================================================
+
+Show:
+
+customer icon
+customer name
+phone
+
+Use a compact card/section.
+
+Examples are visual only.
+
+Do not use real production customer credentials.
+
+========================================================
+17. ITEMS IN TRANSACTION
+========================================================
+
+Show purchased products.
+
+Each line should contain:
+
+product thumbnail
+product name
+price
+quantity
+line total
+
+Use real-looking garment products in the prototype.
+
+The structure must be replaceable with real sale-item data.
+
+========================================================
+18. TOTALS
+========================================================
+
+Reference section:
+
+Subtotal
+Discount
+GST
+Total
+
+Use strong total hierarchy.
+
+Keep currency formatting visually consistent with AMBURAX.
+
+Prototype values only.
+
+========================================================
+19. PAYMENT SECTION
+========================================================
+
+Show:
+
+Payment Method
+Transaction/reference ID
+Amount
+
+Visual example:
+
+UPI
+Txn ID: ...
+₹3,147
+
+Again:
+
+prototype only.
+
+Do not build a second payment system.
+
+========================================================
+20. TRANSACTION ACTIONS
+========================================================
+
+Reference includes:
+
+Print Bill
+Return / Exchange
+More actions
+
+Implement the UI.
+
+Only make actions functional in prototype if appropriate.
+
+Do NOT create fake backend functionality.
+
+The eventual production integration will map them to existing AMBURAX capabilities.
+
+========================================================
+21. PAGINATION
+========================================================
+
+Use compact enterprise pagination.
+
+Reference pattern:
+
+Showing 1–10 of 296 transactions
+
+Then:
+
+previous
+1
+2
+3
+4
+5
+...
+30
+next
+
+Keep this replaceable by the production API.
+
+========================================================
+22. LOWER ANALYTICS ROW
+========================================================
+
+Below the main table/inspector create three analytics cards.
+
+Reference:
+
+Sales Trend
+Payment Mode Breakdown
+Transaction Type
+
+========================================================
+23. SALES TREND
+========================================================
+
+Create a compact sales chart.
+
+Reference behavior:
+
+- blue sales bars/series
+- date labels
+- time/date filter
+- tooltip
+- total sales
+- recent trend
+
+Prototype visual values only.
+
+Do not create a backend.
+
+========================================================
+24. PAYMENT MODE BREAKDOWN
+========================================================
+
+Use a donut chart.
+
+Center:
+
+Total Sales
+
+Legend:
+
+UPI
+Card
+Cash
+Wallet
+etc.
+
+Show:
+
+percentage
+amount
+
+This is prototype visual data only.
+
+Use a replaceable data adapter.
+
+========================================================
+25. TRANSACTION TYPE
+========================================================
+
+Create a compact horizontal breakdown.
+
+Possible:
+
+Sales
+Returns
+Exchanges
+Voided
+
+Show:
+
+count
+percentage
+progress bar
+
+Visual reference only.
+
+========================================================
+26. RESPONSIVE
+========================================================
+
+Desktop:
+
+1536
+1440
+1280
+
+Target:
+
+KPIs
+↓
+filters
+↓
+tabs
+↓
+table + inspector
+↓
+analytics
+
+At 1024:
+
+reduce columns intelligently.
+
+Inspector can become overlay.
+
+At 768:
+
+single-column/overlay model.
+
+At 390:
+
+- sidebar drawer
+- filters drawer
+- transaction table horizontally scrollable INSIDE its container if required
+- transaction inspector becomes slide-over
+- analytics stack
+- no page-level horizontal overflow
+
+========================================================
+27. DESKTOP SCROLL
+========================================================
+
+At desktop:
+
+1536
+1440
+1280
+
+do NOT allow the table to cause page-level horizontal scrolling.
+
+Long values:
+
+ellipsis
+
+Flexible customer/product columns.
+
+Compact numeric columns.
+
+========================================================
+28. PAGE HEIGHT
+========================================================
+
+Do not create huge empty areas.
+
+The structure should be:
+
+Page Header
+↓
+KPIs
+↓
+Filters
+↓
+Tabs
+↓
+Main workspace
+↓
+Analytics
+
+The main table should have controlled height.
+
+If many transactions exist:
+
+the table body may scroll inside its workspace.
+
+Do NOT make the whole page an infinitely long transaction table.
+
+========================================================
+29. VISUAL DATA DENSITY
+========================================================
+
+The reference is significantly more information-dense than the current AMBURAX Sales page.
+
+Increase density using:
+
+- compact cards
+- compact rows
+- meaningful columns
+- inspector
+- analytics
+- aligned controls
+
+Do NOT simply reduce font size.
+
+========================================================
+30. DATA ADAPTER
+========================================================
+
+The Replit prototype may use mock data.
+
+Keep ALL prototype data behind a clearly defined adapter.
+
+Suggested:
+
+salesDashboardData
+transactions
+transactionDetail
+salesTrend
+paymentBreakdown
+transactionTypes
+
+Do NOT scatter demo values across JSX.
+
+This will allow Antigravity to replace the adapter with real AMBURAX data later.
+
+========================================================
+31. NO MOCK BACKEND IMPORT
+========================================================
+
+Do NOT add:
+
+- mock API server
+- database
+- authentication
+- fake production backend
+- alternate schema
+
+Only prototype the UI and isolated data adapter.
+
+========================================================
+32. AMBURAX PRODUCTION MAPPING
+========================================================
+
+Design the UI so the eventual production integration can map to:
+
+Sale
+Sale Items
+Customer
+Payment
+Store
+POS
+Transaction status
+Inventory effects
+etc.
+
+Do not create duplicate domain concepts.
+
+========================================================
+33. FILTER INTERACTIONS
+========================================================
+
+Prototype should support:
+
+- date selection
+- payment filter
+- transaction type
+- search
+- reset
+- tab switching
+- transaction selection
+- inspector open/close
+
+Interactions should actually work inside the prototype.
+
+========================================================
+34. PRODUCT IMAGES
+========================================================
+
+Use the same product-image visual language used by AMBURAX.
+
+Prefer local prototype assets.
+
+Do NOT use random external image URLs.
+
+The production implementation will use:
+
+Product.imageUrl
+
+========================================================
+35. VISUAL CONSISTENCY
+========================================================
+
+The screen must visually belong to:
+
+AMBURAX Dashboard
++
+AMBURAX Inventory
++
+AMBURAX Sales
+
+Use consistent:
+
+- card borders
+- radius
+- typography
+- blue
+- spacing
+- table headers
+- status pills
+- controls
+- iconography
+
+========================================================
+36. DO NOT CHANGE OTHER REPLIT SCREENS
+========================================================
+
+Only:
+
+Sales & Transaction History
+/sales
+
+Do NOT redesign:
+
+Dashboard
+Inventory
+Products
+Customers
+POS
+
+unless a tiny shared component compatibility change is necessary.
+
+========================================================
+37. BROWSER QA
+========================================================
+
+Open the actual prototype.
+
+Verify:
+
+1536px
+1440px
+1280px
+1024px
+768px
+390px
+
+At 1536:
+
+[ ] page header
+[ ] export
+[ ] four KPI cards
+[ ] filter toolbar
+[ ] transaction tabs
+[ ] transaction table
+[ ] transaction inspector
+[ ] pagination
+[ ] Sales Trend
+[ ] Payment Breakdown
+[ ] Transaction Type
+[ ] no horizontal page overflow
+
+At 390:
+
+[ ] mobile navigation
+[ ] filters usable
+[ ] table scroll isolated
+[ ] inspector slide-over
+[ ] analytics stack
+[ ] no page-level horizontal overflow
+
+========================================================
+38. VISUAL COMPARISON
+========================================================
+
+Compare the prototype directly against SCREENSHOT 1.
+
+Focus especially on:
+
+- vertical rhythm
+- KPI sizing
+- table density
+- inspector width
+- filter layout
+- analytics row
+- overall information density
+
+The goal is not:
+
+"similar colors."
+
+The goal is:
+
+"same enterprise screen composition, adapted to AMBURAX."
+
+========================================================
+39. FINAL DESIGN CHECKLIST
+========================================================
+
+[ ] AMBURAX light shell
+[ ] Sales & Transaction History title
+[ ] description
+[ ] Export
+[ ] four KPIs
+[ ] filters
+[ ] search
+[ ] transaction tabs
+[ ] dense table
+[ ] transaction details inspector
+[ ] customer block
+[ ] purchased items
+[ ] totals
+[ ] payment information
+[ ] action buttons
+[ ] pagination
+[ ] Sales Trend
+[ ] Payment Mode Breakdown
+[ ] Transaction Type
+[ ] responsive behavior
+[ ] internal table scrolling
+[ ] no page-level overflow
+[ ] isolated prototype data adapter
+
+========================================================
+40. STOP CONDITION
+========================================================
+
+This is a VISUAL SOURCE phase.
+
+Do NOT integrate with AMBURAX production.
+
+Do NOT modify the AMBURAX repository.
+
+Do NOT start another screen.
+
+Stop after:
+
+Sales & Transaction History
+/sales
+
+has reached the approved visual quality.
+
+Report:
+
+- files changed
+- components created
+- reference used
+- interaction behavior
+- mock data adapter structure
+- responsive QA
+- screenshots
+- remaining prototype-only functionality
+
+Declare:
+
+REPLIT SALES SCREEN — VISUAL SOURCE READY
