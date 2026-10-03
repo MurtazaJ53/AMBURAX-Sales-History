@@ -1,4 +1,5 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
+import { useQuery } from "@tanstack/react-query";
 import { Link } from "wouter";
 import {
   Activity,
@@ -35,6 +36,7 @@ import {
   X,
 } from "lucide-react";
 import { salesDashboardData, type PaymentMode, type Transaction, type TransactionType } from "@/data/sales-fixtures";
+import ReceiptModal, { fetchSaleReceipt, type ReceiptRecord } from "@/components/receipt-modal";
 
 const currency = (value: number) => `₹${value.toLocaleString("en-IN")}`;
 
@@ -204,7 +206,7 @@ function TransactionsTable({ transactions, selectedId, onSelect, page, onPage }:
         </table>
       </div>
       <div className="flex flex-wrap items-center justify-between gap-2 border-t border-[hsl(var(--border))] px-3 py-2.5">
-        <span className="pagination-label text-[10px] text-[hsl(var(--muted-foreground))]">Showing {transactions.length ? (page - 1) * pageSize + 1 : 0}–{Math.min(page * pageSize, transactions.length)} of {transactions.length || 296} transactions</span>
+        <span className="pagination-label text-[10px] text-[hsl(var(--muted-foreground))]">Showing {transactions.length ? (page - 1) * pageSize + 1 : 0}–{Math.min(page * pageSize, transactions.length)} of {transactions.length} transactions</span>
         <div className="flex items-center gap-1">
           <button className="amb-icon-btn h-7 w-7 border border-[hsl(var(--border))]" disabled={page <= 1} onClick={() => onPage(Math.max(1, page - 1))} aria-label="Previous page" data-testid="button-previous-page"><ChevronLeft size={13} /></button>
           {[1, 2, 3, 4, 5].map((number) => <button className={`grid h-7 w-7 place-items-center rounded text-[10px] font-bold ${page === number ? "bg-[hsl(var(--primary))] text-white" : "text-[hsl(var(--muted-foreground))] hover:bg-[hsl(var(--secondary))]"}`} key={number} onClick={() => onPage(Math.min(number, totalPages))} data-testid={`button-page-${number}`}>{number}</button>)}
@@ -217,8 +219,10 @@ function TransactionsTable({ transactions, selectedId, onSelect, page, onPage }:
   );
 }
 
-function Inspector({ transaction, onClose, onNotice }: { transaction: Transaction; onClose: () => void; onNotice: (text: string) => void }) {
-  const detail = salesDashboardData.transactionDetails[transaction.id];
+function Inspector({ transaction, onClose, onNotice, onOpenReceipt }: { transaction: Transaction; onClose: () => void; onNotice: (text: string) => void; onOpenReceipt: (billNo: string) => void }) {
+  const detailQuery = useQuery<ReceiptRecord>({ queryKey: ["sale-receipt", transaction.billNo], queryFn: () => fetchSaleReceipt(transaction.billNo) });
+  const detail = detailQuery.data;
+  if (!detail) return <aside className="amb-inspector flex h-full flex-col items-center justify-center p-5 text-center text-[11px] text-slate-500">{detailQuery.isLoading ? "Loading receipt from database…" : (detailQuery.error instanceof Error ? detailQuery.error.message : "Receipt data is unavailable.")}</aside>;
   return (
     <aside className="amb-inspector slide-in flex h-full flex-col overflow-y-auto" data-testid="transaction-inspector">
       <div className="flex items-start justify-between border-b border-[hsl(var(--border))] px-4 py-3">
@@ -231,7 +235,7 @@ function Inspector({ transaction, onClose, onNotice }: { transaction: Transactio
         <div><div className="mb-2 text-[10px] font-bold uppercase tracking-[.06em] text-[hsl(var(--muted-foreground))]">Items in transaction</div><div className="space-y-2">{detail.items.map((item) => <div className="flex items-center gap-2" key={item.name}><ProductThumb kind={item.image} /><div className="min-w-0 flex-1"><div className="truncate text-[10px] font-semibold text-[#3a506a]">{item.name}</div><div className="text-[9px] text-[hsl(var(--muted-foreground))]">{currency(item.price)} × {item.quantity}</div></div><div className="text-[10px] font-bold text-[#293f5b]">{currency(item.total)}</div></div>)}</div></div>
         <div className="space-y-1.5 border-t border-[hsl(var(--border))] pt-3 text-[10px]"><div className="flex justify-between text-[hsl(var(--muted-foreground))]"><span>Subtotal</span><b className="text-[#445a72]">{currency(detail.subtotal)}</b></div><div className="flex justify-between text-[hsl(var(--muted-foreground))]"><span>Discount</span><b className="text-[#21a277]">- {currency(detail.discount)}</b></div><div className="flex justify-between text-[hsl(var(--muted-foreground))]"><span>GST (5%)</span><b className="text-[#445a72]">{currency(detail.gst)}</b></div><div className="mt-2 flex justify-between border-t border-[hsl(var(--border))] pt-2 text-[12px] font-bold text-[#263e5b]"><span>Total</span><span>{currency(detail.total)}</span></div></div>
         <div className="rounded border border-[hsl(var(--border))] p-3"><div className="mb-2 text-[10px] font-bold uppercase tracking-[.06em] text-[hsl(var(--muted-foreground))]">Payment</div><div className="flex items-center justify-between text-[10px]"><span className="flex items-center gap-1.5 text-[#445a72]"><CreditCard size={13} className="text-[hsl(var(--primary))]" />{detail.paymentMethod}</span><b className="text-[#293f5b]">{currency(detail.paymentAmount)}</b></div><div className="mt-1 text-[9px] text-[hsl(var(--muted-foreground))]">Txn ID: {detail.transactionId}</div></div>
-        <div className="flex gap-2"><button className="amb-control flex-1 justify-center text-[10px] font-bold text-[hsl(var(--primary))]" onClick={() => onNotice(`Print preview prepared for ${detail.billNo}.`)} data-testid="button-print-bill"><ArrowDownToLine size={13} /> Print Bill</button><button className="amb-control flex-1 justify-center text-[10px] font-bold text-[hsl(var(--primary))]" onClick={() => onNotice("Return / Exchange workflow is ready for integration.")} data-testid="button-return-exchange"><RefreshCcw size={13} /> Return / Exchange</button><button className="amb-icon-btn border border-[hsl(var(--border))]" onClick={() => onNotice("More transaction actions are available in production.")} aria-label="More transaction actions" data-testid="button-more-transaction-actions"><MoreHorizontal size={15} /></button></div>
+        <div className="flex gap-2"><button className="amb-control flex-1 justify-center text-[10px] font-bold text-[hsl(var(--primary))]" onClick={() => onOpenReceipt(detail.billNo)} data-testid="button-print-bill"><ArrowDownToLine size={13} /> Print Bill</button><button className="amb-control flex-1 justify-center text-[10px] font-bold text-[hsl(var(--primary))]" onClick={() => onNotice("Return / Exchange workflow is ready for integration.")} data-testid="button-return-exchange"><RefreshCcw size={13} /> Return / Exchange</button><button className="amb-icon-btn border border-[hsl(var(--border))]" onClick={() => onNotice("More transaction actions are available in production.")} aria-label="More transaction actions" data-testid="button-more-transaction-actions"><MoreHorizontal size={15} /></button></div>
       </div>
     </aside>
   );
@@ -273,7 +277,7 @@ function TransactionTypeChart() {
 export default function Sales() {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [mobileFiltersOpen, setMobileFiltersOpen] = useState(false);
-  const [selectedId, setSelectedId] = useState(salesDashboardData.transactions[0].id);
+  const [selectedId, setSelectedId] = useState("");
   const [search, setSearch] = useState("");
   const [payment, setPayment] = useState("all");
   const [type, setType] = useState("all");
@@ -282,8 +286,12 @@ export default function Sales() {
   const [page, setPage] = useState(1);
   const [moreOpen, setMoreOpen] = useState(false);
   const [notice, setNotice] = useState("");
+  const [receiptBillNo, setReceiptBillNo] = useState("");
+  const transactionsQuery = useQuery<Transaction[]>({ queryKey: ["sales"], queryFn: async () => { const response = await fetch("/api/sales"); if (!response.ok) throw new Error("Could not load sales from the database."); return response.json(); } });
+  const transactions = transactionsQuery.data ?? [];
+  useEffect(() => { if (transactions.length && !transactions.some((item) => item.id === selectedId)) setSelectedId(transactions[0].id); }, [transactions, selectedId]);
   const [inspectorOpen, setInspectorOpen] = useState(() => window.innerWidth >= 768);
-  const filtered = useMemo(() => salesDashboardData.transactions.filter((transaction) => {
+  const filtered = useMemo(() => transactions.filter((transaction) => {
     const searchMatch = !search || transaction.searchable.includes(search.toLowerCase());
     const paymentMatch = payment === "all" || transaction.paymentMode === payment;
     const typeMatch = type === "all" || transaction.type === type;
@@ -291,8 +299,9 @@ export default function Sales() {
     const selectedDay = date ? String(Number(date.slice(-2))) : "";
     const dateMatch = !selectedDay || transaction.dateTime.startsWith(`${selectedDay} `);
     return searchMatch && paymentMatch && typeMatch && tabMatch && dateMatch;
-  }), [search, payment, type, tab, date]);
-  const selected = salesDashboardData.transactions.find((item) => item.id === selectedId) ?? salesDashboardData.transactions[0];
+  }), [transactions, search, payment, type, tab, date]);
+  const selected = transactions.find((item) => item.id === selectedId) ?? transactions[0];
+  const tabs = salesDashboardData.tabs.map((item) => ({ ...item, count: item.value === "all" ? transactions.length : transactions.filter((transaction) => transaction.type === item.value).length }));
   const handleNotice = (text: string) => { setNotice(text); window.setTimeout(() => setNotice(""), 2600); };
   const reset = () => { setSearch(""); setPayment("all"); setType("all"); setDate(""); setTab("all"); setPage(1); setMoreOpen(false); };
 
@@ -309,14 +318,16 @@ export default function Sales() {
           <section className="kpi-grid mb-3 grid grid-cols-4 gap-3">{salesDashboardData.kpis.map((item) => <KpiCard item={item} key={item.label} />)}</section>
           <div className="mb-3 flex items-center justify-between gap-2"><div className="hidden text-[11px] font-bold text-[#425a73] md:block">Transaction workspace</div><button className="amb-control amb-mobile-only ml-auto" onClick={() => setMobileFiltersOpen(!mobileFiltersOpen)} data-testid="button-mobile-filters"><Filter size={13} /> Filters</button></div>
           <div className={`${mobileFiltersOpen ? "block" : "hidden"} mb-3 md:block`}><FilterBar search={search} setSearch={setSearch} payment={payment} setPayment={setPayment} type={type} setType={setType} date={date} setDate={setDate} moreOpen={moreOpen} setMoreOpen={setMoreOpen} onReset={reset} /></div>
-          <div className="tabs-scroll mb-0 flex border-b border-[hsl(var(--border))]" role="tablist">{salesDashboardData.tabs.map((item) => <button className={`amb-tab ${tab === item.value ? "active" : ""}`} key={item.value} onClick={() => { setTab(item.value); setPage(1); }} role="tab" aria-selected={tab === item.value} data-testid={`tab-${item.value.toLowerCase()}`}>{item.label} <span className="ml-1 text-[9px] opacity-70">({item.count})</span></button>)}</div>
+          <div className="tabs-scroll mb-0 flex border-b border-[hsl(var(--border))]" role="tablist">{tabs.map((item) => <button className={`amb-tab ${tab === item.value ? "active" : ""}`} key={item.value} onClick={() => { setTab(item.value); setPage(1); }} role="tab" aria-selected={tab === item.value} data-testid={`tab-${item.value.toLowerCase()}`}>{item.label} <span className="ml-1 text-[9px] opacity-70">({item.count})</span></button>)}</div>
+          {transactionsQuery.isError && <div className="mb-2 rounded border border-rose-200 bg-rose-50 px-3 py-2 text-[11px] text-rose-700">{transactionsQuery.error instanceof Error ? transactionsQuery.error.message : "Could not load saved sales."}</div>}
           <div className={`amb-card flex min-h-[476px] min-w-0 overflow-hidden rounded-t-none ${inspectorOpen ? "" : ""}`}>
             <div className="min-w-0 flex-1"><TransactionsTable transactions={filtered} selectedId={inspectorOpen ? selectedId : ""} onSelect={(transaction) => { setSelectedId(transaction.id); setInspectorOpen(true); }} page={page} onPage={setPage} /></div>
-            {inspectorOpen && <><div className="amb-drawer-backdrop md:hidden" onClick={() => setInspectorOpen(false)} /><Inspector transaction={selected} onClose={() => setInspectorOpen(false)} onNotice={handleNotice} /></>}
+            {inspectorOpen && selected && <><div className="amb-drawer-backdrop md:hidden" onClick={() => setInspectorOpen(false)} /><Inspector transaction={selected} onClose={() => setInspectorOpen(false)} onNotice={handleNotice} onOpenReceipt={setReceiptBillNo} /></>}
           </div>
           <section className="analytics-grid mt-3 grid grid-cols-[1.25fr_1fr_1fr] gap-3"><SalesTrend /><PaymentBreakdown /><TransactionTypeChart /></section>
         </main>
       </div>
+      {receiptBillNo && <ReceiptModal billNo={receiptBillNo} onClose={() => setReceiptBillNo("")} onNotice={handleNotice} />}
       {notice && <div className="fixed bottom-5 left-1/2 z-50 -translate-x-1/2 rounded-md bg-[#263e5b] px-4 py-2.5 text-[11px] font-semibold text-white shadow-lg" role="status" data-testid="status-notice">{notice}</div>}
     </div>
   );
