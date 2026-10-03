@@ -1,3 +1,4 @@
+import { randomUUID } from "node:crypto";
 import { desc, eq, inArray } from "drizzle-orm";
 import { Router, type IRouter } from "express";
 import { db, saleItems, salePayments, sales, stores } from "@workspace/db";
@@ -75,6 +76,86 @@ router.get("/sales/:billNo/receipt", async (req, res) => {
     paymentMethod: firstPayment?.method ?? "—", transactionId: firstPayment?.reference ?? "—",
     paymentAmount: payments.reduce((sum, payment) => sum + payment.amount, 0), payments,
   });
+});
+
+
+
+router.post("/sales", async (req, res) => {
+  const payload = req.body as Record<string, unknown> | null;
+  const storeId = typeof payload?.storeId === "string" ? payload.storeId : "";
+  const cashierName = typeof payload?.cashierName === "string" ? payload.cashierName.trim() : "";
+  const rawItems = Array.isArray(payload?.items) ? payload.items : [];
+  const rawPayments = Array.isArray(payload?.payments) ? payload.payments : [];
+  const gstRate = Number(payload?.gstRate);
+  const itemDiscount = Number(payload?.itemDiscount ?? 0);
+  const soldAt = payload?.soldAt ? new Date(String(payload.soldAt)) : new Date();
+
+  if (!/^[0-9a-f-]{36}$/i.test(storeId) || !cashierName || !rawItems.length || !rawPayments.length ||
+      !Number.isFinite(gstRate) || gstRate < 0 || gstRate > 100 || !Number.isFinite(itemDiscount) || itemDiscount < 0 ||
+      Number.isNaN(soldAt.getTime())) {
+    return res.status(400).json({ error: "Provide a store, cashier, sale items, payment lines, valid GST rate, and a non-negative discount." });
+  }
+
+  const items: { productName: string; sku: string; variant: string | null; imageKey: string; quantity: number; unitPrice: number; lineTotal: number }[] = [];
+  for (const raw of rawItems) {
+    if (!raw || typeof raw !== "object") return res.status(400).json({ error: "Each sale item must be an object." });
+    const item = raw as Record<string, unknown>;
+    const productName = typeof item.name === "string" ? item.name.trim() : "";
+    const sku = typeof item.sku === "string" ? item.sku.trim() : "";
+    const quantity = Number(item.quantity);
+    const unitPrice = Number(item.unitPrice);
+    if (!productName || !sku || !Number.isInteger(quantity) || quantity <= 0 || !Number.isFinite(unitPrice) || unitPrice < 0) {
+      return res.status(400).json({ error: "Each item needs a name, SKU, positive quantity, and non-negative unit price." });
+    }
+    const lineTotal = Math.round(quantity * unitPrice * 100) / 100;
+    items.push({ productName, sku, variant: typeof item.variant === "string" ? item.variant : null,
+      imageKey: typeof item.image === "string" ? item.image : "shirt", quantity, unitPrice, lineTotal });
+  }
+
+  const payments: { method: "UPI" | "Card" | "Cash" | "Wallet"; reference: string | null; amount: number }[] = [];
+  for (const raw of rawPayments) {
+    if (!raw || typeof raw !== "object") return res.status(400).json({ error: "Each payment line must be an object." });
+    const payment = raw as Record<string, unknown>;
+    const method = payment.method;
+    const amount = Number(payment.amount);
+    if (method !== "UPI" && method !== "Card" && method !== "Cash" && method !== "Wallet") {
+      return res.status(400).json({ error: "Payment method must be UPI, Card, Cash, or Wallet." });
+    }
+    if (!Number.isFinite(amount) || amount < 0) return res.status(400).json({ error: "Payment amounts must be non-negative numbers." });
+    payments.push({ method, reference: typeof payment.reference === "string" ? payment.reference : null, amount });
+  }
+
+  const subtotalPaise = items.reduce((sum, item) => sum + Math.round(item.lineTotal * 100), 0);
+  const discountPaise = Math.round(itemDiscount * 100);
+  if (discountPaise > subtotalPaise) return res.status(400).json({ error: "Discount cannot exceed the sale subtotal." });
+  const gstPaise = Math.round((subtotalPaise - discountPaise) * gstRate / 100);
+  const totalPaise = subtotalPaise - discountPaise + gstPaise;
+  const paidPaise = payments.reduce((sum, payment) => sum + Math.round(payment.amount * 100), 0);
+  if (paidPaise !== totalPaise) return res.status(400).json({ error: "Payment lines must add up exactly to the sale total." });
+
+  const [store] = await db.select({ id: stores.id }).from(stores).where(eq(stores.id, storeId)).limit(1);
+  if (!store) return res.status(400).json({ error: "The selected store does not exist." });
+  const billNo = typeof payload?.billNo === "string" && payload.billNo.trim()
+    ? payload.billNo.trim()
+    : "POS-" + randomUUID().replaceAll("-", "").slice(0, 10).toUpperCase();
+  const invoiceNo = typeof payload?.invoiceNo === "string" ? payload.invoiceNo : null;
+  const customerName = typeof payload?.customerName === "string" && payload.customerName.trim() ? payload.customerName.trim() : "Walk-in Customer";
+  const customerPhone = typeof payload?.customerPhone === "string" ? payload.customerPhone : null;
+  const salesPersonName = typeof payload?.salesPersonName === "string" ? payload.salesPersonName : null;
+
+  const saleId = await db.transaction(async (tx) => {
+    const [saved] = await tx.insert(sales).values({
+      billNo, invoiceNo, storeId, soldAt, cashierName,
+      salesPersonName, customerName, customerPhone, status: "Paid", type: "Sale",
+      subtotal: subtotalPaise / 100, itemDiscount: discountPaise / 100,
+      gstRate, gstAmount: gstPaise / 100, totalAmount: totalPaise / 100,
+    }).returning({ id: sales.id });
+    await tx.insert(saleItems).values(items.map((item) => ({ ...item, saleId: saved.id })));
+    await tx.insert(salePayments).values(payments.map((payment) => ({ ...payment, saleId: saved.id })));
+    return saved.id;
+  });
+
+  return res.status(201).json({ id: saleId, billNo, receiptUrl: "/api/sales/" + encodeURIComponent(billNo) + "/receipt" });
 });
 
 export default router;
